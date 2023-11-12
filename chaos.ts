@@ -4,7 +4,7 @@ import * as app from "./app/app";
 
 function printUsage() {
   console.log(`Usage:
-  ./chaos
+  ./chaos.ts
   `);
 }
 
@@ -20,18 +20,15 @@ function main() {
         printUsage();
         return;
       }
+      const hostUrl = process.argv[4] ? process.argv[4] : "mqtt://0.0.0.0"
       const topic = process.argv[3]
-      app.mqttSubscriber(topic);
+      app.mqttSubscriber(topic, hostUrl);
       return;
     case "test-client":
       app.testClient();
       return;
     case "run-server":
       app.runServer();
-      return;
-    case "cool":
-      app.printSomethingCool();
-      console.log("cool");
       return;
     default:
       printUsage()

@@ -8,20 +8,14 @@ import adafruit_bme280.advanced as adafruit_bme280
 import adafruit_minimqtt.adafruit_minimqtt as MQTT
 from adafruit_io.adafruit_io import IO_MQTT
 
-TIMEOUT = None
-HOST = "192.168.1.240"
-PORT = 8080
-
 # Connect to wifi
 print("Connecting to wifi")
 wifi.radio.connect("ssid", "pass")
 pool = socketpool.SocketPool(wifi.radio)
 
-# Define callback functions which will be called when certain events happen.
 def connected(client):
     print("I have connected")
 
-# Initialize a new MQTT Client object
 mqtt_client = MQTT.MQTT(
     broker="192.168.1.160",
     socket_pool=pool,
@@ -35,30 +29,10 @@ io = IO_MQTT(mqtt_client)
 # Set up the callback methods above
 io.on_connect = connected
 
-#print("Creating Socket")
-#with pool.socket(pool.AF_INET, pool.SOCK_STREAM) as s:
-#    s.settimeout(TIMEOUT)
-#    print("Connecting")
-#    s.connect((HOST, PORT))
-#    print("Sending")
-#    sent = s.send(b"ping")
-#    print("Receiving")
-#    buff = bytearray(128)
-#    numbytes = s.recv_into(buff)
-#    buff = buff[:numbytes] # truncate to just message
-#print(buff.decode('utf-8'))
-
 # Create sensor object, using the board's default I2C bus.
 i2c = board.I2C()  # uses board.SCL and board.SDA
 # i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
 bme280 = adafruit_bme280.Adafruit_BME280_I2C(i2c)
-
-# OR create sensor object, using the board's default SPI bus.
-# SPI setup
-# from digitalio import DigitalInOut
-# spi = board.SPI()
-# bme_cs = digitalio.DigitalInOut(board.D10)
-# bme280 = adafruit_bme280.Adafruit_BME280_SPI(spi, bme_cs)
 
 # Change this to match the location's pressure (hPa) at sea level
 bme280.sea_level_pressure = 1013.25
@@ -92,4 +66,3 @@ while True:
         "\nBoard will hard reset in 30 seconds.")
         time.sleep(30) 
         microcontroller.reset()
-

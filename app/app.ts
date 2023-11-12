@@ -1,12 +1,5 @@
-import { terminal as term } from 'terminal-kit';
 import * as net from 'net';
 import * as mqtt from 'mqtt';
-
-export function getMessage(): string { return "Hello Morld!" }
-
-export function printSomethingCool() {
-  term.brightBlue("Cool Dude");
-}
 
 export function runServer() {
   const server = net.createServer((socket) => {
@@ -83,8 +76,8 @@ export async function testClient() {
   console.log(res);
 }
 
-export function mqttSubscriber(topic: string) {
-    const client = mqtt.connect("mqtt://192.168.1.240");
+export function mqttSubscriber(topic: string, hostUrl: string) {
+    const client = mqtt.connect(hostUrl);
 
     client.on('error', function (error) {
         console.log(error)
@@ -101,7 +94,6 @@ export function mqttSubscriber(topic: string) {
     });
 
     client.on("message", (msgTopic, message) => {
-        // message is Buffer
         console.log(`${msgTopic} ${message.toString()}`);
     });
 
