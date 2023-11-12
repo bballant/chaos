@@ -1,6 +1,7 @@
 #!/usr/bin/env tsx
 
 import * as app from "./app/app";
+import * as weather from "./app/weather";
 
 function printUsage() {
   console.log(`Usage:
@@ -15,6 +16,9 @@ function main() {
   }
 
   switch (process.argv[2]) {
+    case "mqtt-weather-event":
+      weather.printCurrentWeatherInMaplewood();
+      return;
     case "mqtt-subscriber":
       if (!process.argv[3]) {
         printUsage();
