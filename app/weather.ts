@@ -1,7 +1,5 @@
-#!/usr/bin/env tsx
-
 import { fetchWeatherApi } from 'openmeteo';
-	
+import * as mqtt from 'mqtt';
 
 export type WeatherData = {
 	time: Date,
@@ -11,7 +9,12 @@ export type WeatherData = {
 	windSpeed: number,
 }
 
-export async function currentWeatherInMaplewood(): Promise<WeatherData> {
+type WeatherEvent<T extends number | string> = {
+  topic: string,
+  value: T,
+}
+
+function currentWeatherInMaplewood(): Promise<WeatherData> {
 	const params = {
 		"latitude": 52.52,
 		"longitude": 13.41,
@@ -21,32 +24,42 @@ export async function currentWeatherInMaplewood(): Promise<WeatherData> {
 		"precipitation_unit": "inch"
 	};
 	const url = "https://api.open-meteo.com/v1/forecast";
-	const responses = await fetchWeatherApi(url, params);
+	
+	return fetchWeatherApi(url, params).then((responses) => {
+		// Helper function to form time ranges
+		const range = (start: number, stop: number, step: number) =>
+			Array.from({ length: (stop - start) / step }, (_, i) => start + i * step);
 
-	// Helper function to form time ranges
-	const range = (start: number, stop: number, step: number) =>
-		Array.from({ length: (stop - start) / step }, (_, i) => start + i * step);
+		// Process first location. Add a for-loop for multiple locations or weather models
+		const response = responses[0];
 
-	// Process first location. Add a for-loop for multiple locations or weather models
-	const response = responses[0];
+		// Attributes for timezone and location
+		const utcOffsetSeconds = response.utcOffsetSeconds();
+		const timezone = response.timezone();
+		const timezoneAbbreviation = response.timezoneAbbreviation();
+		const latitude = response.latitude();
+		const longitude = response.longitude();
 
-	// Attributes for timezone and location
-	const utcOffsetSeconds = response.utcOffsetSeconds();
-	const timezone = response.timezone();
-	const timezoneAbbreviation = response.timezoneAbbreviation();
-	const latitude = response.latitude();
-	const longitude = response.longitude();
+		const current = response.current()!;
 
-	const current = response.current()!;
+		const roundy = (x: number) => {return parseFloat(x.toFixed(1))};
 
-	// Note: The order of weather variables in the URL query and the indices below need to match!
-	return {
-		time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
-		temperature: current.variables(0)!.value(),
-		humidity: current.variables(1)!.value(),
-		precipitation: current.variables(2)!.value(),
-		windSpeed: current.variables(3)!.value(),
-	};
+		return {
+			time: new Date((Number(current.time()) + utcOffsetSeconds) * 1000),
+			temperature: roundy(current.variables(0)!.value()),
+			humidity: roundy(current.variables(1)!.value()),
+			precipitation: roundy(current.variables(2)!.value()),
+			windSpeed: roundy(current.variables(3)!.value()),
+		};
+	});
+
+}
+
+export function publishCurrentWeatherInMaplewood(client: mqtt.MqttClient): Promise<WeatherData> {
+	return currentWeatherInMaplewood().then((currentWeather) => {
+		client.publish("maplewood/weather", JSON.stringify(currentWeather));
+		return currentWeather;
+	});
 }
 
 export async function printCurrentWeatherInMaplewood() {

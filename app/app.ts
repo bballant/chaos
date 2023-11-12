@@ -76,6 +76,21 @@ export async function testClient() {
   console.log(res);
 }
 
+export function mkMqttClient(hostUrl: string): mqtt.MqttClient {
+    const client = mqtt.connect(hostUrl);
+
+    client.on("error", function (error) {
+        console.log(error)
+    });
+
+    client.on("disconnect", () => {
+        console.log("Disconnection");
+        client.end();
+    });
+
+    return client;
+}
+
 export function mqttSubscriber(topic: string, hostUrl: string) {
     const client = mqtt.connect(hostUrl);
 

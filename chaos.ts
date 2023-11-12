@@ -17,7 +17,16 @@ function main() {
 
   switch (process.argv[2]) {
     case "mqtt-weather-event":
-      weather.printCurrentWeatherInMaplewood();
+      const weatherUrl = process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0";
+      const client = app.mkMqttClient(weatherUrl);
+      client.on("connect", () => {
+        console.log("MQTT client connected");
+        weather.publishCurrentWeatherInMaplewood(client).then((_) => {
+          client.end(false, () => {
+            console.log("MQTT client disconnected");
+          })
+        });
+      });
       return;
     case "mqtt-subscriber":
       if (!process.argv[3]) {
