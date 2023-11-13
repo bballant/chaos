@@ -1,7 +1,6 @@
 #!/usr/bin/env tsx
 
 import * as app from "./app/app";
-import * as weather from "./app/weather";
 
 function printUsage() {
   console.log(`Usage:
@@ -16,30 +15,33 @@ function main() {
   }
 
   switch (process.argv[2]) {
+    // Weather Event
     case "mqtt-weather-event":
-      const weatherUrl = process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0";
-      const client = app.mkMqttClient(weatherUrl);
-      client.on("connect", () => {
-        console.log("MQTT client connected");
-        weather.publishCurrentWeatherInMaplewood(client).then((_) => {
-          client.end(false, () => {
-            console.log("MQTT client disconnected");
-          })
-        });
-      });
+      app.mqttWeatherEvent(
+        process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0"
+      );
       return;
+    // Event Logger
+    case "mqtt-logger":
+      app.mqttLogger(
+        process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0"
+      );
+      return;
+    // Event Logger
+    case "mqtt-logger-reset-db":
+      app.mqttLoggerResetDB();
+      return;
+    // Event Printer
     case "mqtt-subscriber":
-      if (!process.argv[3]) {
-        printUsage();
-        return;
-      }
-      const hostUrl = process.argv[4] ? process.argv[4] : "mqtt://0.0.0.0"
-      const topic = process.argv[3]
+      const hostUrl = process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0"
+      const topic = process.argv[4] ? process.argv[4] : "#"
       app.mqttSubscriber(topic, hostUrl);
       return;
+    // Test Unused Sockets Stuff
     case "test-client":
       app.testClient();
       return;
+    // Run Unused Sockets Stuff
     case "run-server":
       app.runServer();
       return;
