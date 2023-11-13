@@ -4,7 +4,22 @@ import * as app from "./app/app";
 
 function printUsage() {
   console.log(`Usage:
-  ./chaos.ts
+  Chaos homeskillet tools
+
+  # default  usage depends on tsx
+  npm install tsx --global
+
+  # install local npm deps
+  npm install
+
+  # run the tsx script
+  ./chaos.ts <subcommand> [host-url] [*topic]
+
+  subcommands:
+    mqtt-weather-event
+    mqtt-logger
+    mqtt-logger-reset-db
+    mqtt-subscriber
   `);
 }
 
@@ -27,7 +42,7 @@ function main() {
         process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0"
       );
       return;
-    // Event Logger
+    // Event Logger DB Reset - Deletes all records
     case "mqtt-logger-reset-db":
       app.mqttLoggerResetDB();
       return;
@@ -36,14 +51,6 @@ function main() {
       const hostUrl = process.argv[3] ? process.argv[3] : "mqtt://0.0.0.0"
       const topic = process.argv[4] ? process.argv[4] : "#"
       app.mqttSubscriber(topic, hostUrl);
-      return;
-    // Test Unused Sockets Stuff
-    case "test-client":
-      app.testClient();
-      return;
-    // Run Unused Sockets Stuff
-    case "run-server":
-      app.runServer();
       return;
     default:
       printUsage()
